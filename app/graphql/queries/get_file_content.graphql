@@ -1,0 +1,11 @@
+# Fetch specific file content from a repository
+query GetFileContent($owner: String!, $name: String!, $expression: String!) {
+    repository(owner: $owner, name: $name) {
+        object(expression: $expression) {
+            ... on Blob {
+                text
+                byteSize
+            }
+        }
+    }
+}

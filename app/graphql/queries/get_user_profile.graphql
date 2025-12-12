@@ -1,0 +1,33 @@
+# Fetch user profile and GitHub ID (needed for filtering commits)
+query GetUserProfile($username: String!) {
+    user(login: $username) {
+        id
+        login
+        name
+        avatarUrl
+        bio
+        company
+        location
+        email
+        websiteUrl
+        createdAt
+        followers {
+            totalCount
+        }
+        following {
+            totalCount
+        }
+        repositories {
+            totalCount
+        }
+        contributionsCollection {
+            totalCommitContributions
+            totalPullRequestContributions
+            totalIssueContributions
+            totalRepositoryContributions
+            contributionCalendar {
+                totalContributions
+            }
+        }
+    }
+}

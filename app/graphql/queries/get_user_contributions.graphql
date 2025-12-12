@@ -1,0 +1,69 @@
+# User's contributions to a specific repository (commits, PRs, issues)
+query GetUserContributions($owner: String!, $name: String!, $authorId: ID) {
+    repository(owner: $owner, name: $name) {
+        name
+        
+        # User's commits
+        defaultBranchRef {
+            target {
+                ... on Commit {
+                    history(first: 100, author: {id: $authorId}) {
+                        totalCount
+                        nodes {
+                            message
+                            committedDate
+                            additions
+                            deletions
+                            changedFilesIfAvailable
+                            author {
+                                name
+                                email
+                                user {
+                                    login
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        # PRs (filter by author client-side)
+        pullRequests(first: 50, states: [OPEN, CLOSED, MERGED], orderBy: {field: CREATED_AT, direction: DESC}) {
+            totalCount
+            nodes {
+                title
+                state
+                createdAt
+                mergedAt
+                closedAt
+                additions
+                deletions
+                changedFiles
+                author {
+                    login
+                }
+            }
+        }
+        
+        # Issues (filter by author client-side)
+        issues(first: 50, states: [OPEN, CLOSED], orderBy: {field: CREATED_AT, direction: DESC}) {
+            totalCount
+            nodes {
+                title
+                state
+                createdAt
+                closedAt
+                author {
+                    login
+                }
+                labels(first: 5) {
+                    nodes {
+                        name
+                        color
+                    }
+                }
+            }
+        }
+    }
+}

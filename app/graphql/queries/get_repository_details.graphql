@@ -1,0 +1,157 @@
+# Detailed Repository Info with config files for framework detection
+query GetRepositoryDetails($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+        # Basic Info
+        name
+        nameWithOwner
+        description
+        url
+        homepageUrl
+        isPrivate
+        isFork
+        isArchived
+        isTemplate
+        
+        # Stats
+        stargazerCount
+        forkCount
+        watchers {
+            totalCount
+        }
+        
+        # Dates
+        createdAt
+        updatedAt
+        pushedAt
+        
+        # Owner info
+        owner {
+            login
+            avatarUrl
+        }
+        
+        # Languages (for framework detection)
+        languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+            totalCount
+            totalSize
+            edges {
+                size
+                node {
+                    name
+                    color
+                }
+            }
+        }
+        
+        # Primary Language
+        primaryLanguage {
+            name
+            color
+        }
+        
+        # Topics/Tags
+        repositoryTopics(first: 20) {
+            nodes {
+                topic {
+                    name
+                }
+            }
+        }
+        
+        # Default branch info
+        defaultBranchRef {
+            name
+            target {
+                ... on Commit {
+                    history(first: 1) {
+                        totalCount
+                    }
+                }
+            }
+        }
+        
+        # README content (for AI summary)
+        readme: object(expression: "HEAD:README.md") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        # Config files for framework detection
+        packageJson: object(expression: "HEAD:package.json") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        requirementsTxt: object(expression: "HEAD:requirements.txt") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        pyprojectToml: object(expression: "HEAD:pyproject.toml") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        cargoToml: object(expression: "HEAD:Cargo.toml") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        pomXml: object(expression: "HEAD:pom.xml") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        buildGradle: object(expression: "HEAD:build.gradle") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        goMod: object(expression: "HEAD:go.mod") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        gemfile: object(expression: "HEAD:Gemfile") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        composerJson: object(expression: "HEAD:composer.json") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        pubspecYaml: object(expression: "HEAD:pubspec.yaml") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        dockerfile: object(expression: "HEAD:Dockerfile") {
+            ... on Blob {
+                text
+            }
+        }
+        
+        # Root directory structure
+        rootTree: object(expression: "HEAD:") {
+            ... on Tree {
+                entries {
+                    name
+                    type
+                }
+            }
+        }
+    }
+}

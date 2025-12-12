@@ -1,0 +1,31 @@
+# Quick check of user's involvement in a repository
+query GetContributionStats($owner: String!, $name: String!, $username: String!) {
+    repository(owner: $owner, name: $name) {
+        name
+        owner {
+            login
+        }
+        # Check if user is a collaborator
+        collaborators(first: 1, query: $username) {
+            nodes {
+                login
+            }
+        }
+        # Recent commits to check user involvement
+        defaultBranchRef {
+            target {
+                ... on Commit {
+                    history(first: 100) {
+                        nodes {
+                            author {
+                                user {
+                                    login
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

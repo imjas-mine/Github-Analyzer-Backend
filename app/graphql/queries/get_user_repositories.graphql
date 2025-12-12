@@ -1,0 +1,44 @@
+# Fetch all repositories for a user (Timeline View)
+query GetUserRepositories($username: String!, $first: Int = 100, $after: String) {
+    user(login: $username) {
+        login
+        avatarUrl
+        repositories(first: $first, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}, ownerAffiliations: [OWNER, COLLABORATOR, ORGANIZATION_MEMBER]) {
+            totalCount
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            nodes {
+                name
+                nameWithOwner
+                description
+                url
+                isPrivate
+                isFork
+                stargazerCount
+                forkCount
+                primaryLanguage {
+                    name
+                    color
+                }
+                createdAt
+                updatedAt
+                pushedAt
+                owner {
+                    login
+                }
+                defaultBranchRef {
+                    name
+                    target {
+                        ... on Commit {
+                            history(first: 1) {
+                                totalCount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
