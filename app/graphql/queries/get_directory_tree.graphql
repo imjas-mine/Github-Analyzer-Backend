@@ -1,7 +1,7 @@
 # Get directory tree structure for project analysis
-query GetDirectoryTree($owner: String!, $name: String!, $expression: String!) {
+query GetDirectoryTree($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
-        object(expression: $expression) {
+        object(expression: "HEAD:") {
             ... on Tree {
                 entries {
                     name

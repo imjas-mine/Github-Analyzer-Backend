@@ -132,6 +132,7 @@ class RepositoryDetails(BaseModel):
     is_fork: bool = Field(alias="isFork")
     is_archived: bool = Field(alias="isArchived")
     is_template: bool = Field(alias="isTemplate")
+    is_empty: bool = Field(alias="isEmpty")
     
     # Stats
     stargazer_count: int = Field(alias="stargazerCount")
@@ -157,14 +158,11 @@ class RepositoryDetails(BaseModel):
     # Content for AI
     readme_content: Optional[str] = None
     root_directory: List[DirectoryEntry] = []
-    config_files: ConfigFiles = Field(default_factory=ConfigFiles)
     
     # Commit stats
     default_branch: Optional[str] = None
     total_commits: int = 0
 
-    class Config:
-        populate_by_name = True
 
 
 # ============================================
