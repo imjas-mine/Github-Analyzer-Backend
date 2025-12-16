@@ -54,9 +54,10 @@ class GitHubService:
         )
         return data["repository"]
 
-    async def get_file_content(self, owner: str, name: str, path: str):
+    async def get_file_content(self, owner: str, name: str, expression: str):
         data = await self.send_query(
-            QueryNames.FILE_CONTENT, {"owner": owner, "name": name, "path": path}
+            QueryNames.FILE_CONTENT,
+            {"owner": owner, "name": name, "expression": expression},
         )
         return data["repository"]["object"]
 
