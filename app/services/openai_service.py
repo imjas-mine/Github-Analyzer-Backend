@@ -1,14 +1,28 @@
 from openai import AsyncOpenAI
 from app.core.config import settings
 import json
+import redis.asyncio as redis
+import hashlib
 
 
 class OpenAIService:
     def __init__(self):
         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = "gpt-4o-mini"
+        self.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
     async def send_prompt(self, system_prompt: str, user_prompt: str):
+        prompt_hash = hashlib.md5((system_prompt + user_prompt).encode()).hexdigest()
+
+        cache_key = f"openai:{prompt_hash}"
+
+        cached_data = await self.redis.get(cache_key)
+        if cached_data:
+            print("Using cached response")
+            return json.loads(cached_data)
+
+        print("Sending prompt to OpenAI...")
+
         response = await self.client.chat.completions.create(
             model=self.model,
             response_format={"type": "json_object"},
@@ -17,7 +31,14 @@ class OpenAIService:
                 {"role": "user", "content": user_prompt},
             ],
         )
-        return json.loads(response.choices[0].message.content)
+        print("Response from OpenAI, the response is:", response)
+        content = response.choices[0].message.content
+        print("Response from OpenAI, the content is:", content)
+
+        print("Storing response in cache...")
+        await self.redis.set(cache_key, content, ex=3600)
+
+        return json.loads(content)
 
     async def analyze_repository(self, ctx: dict) -> dict:
         system_prompt = """You help hiring managers understand GitHub projects quickly.

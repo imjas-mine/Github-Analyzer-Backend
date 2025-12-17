@@ -59,7 +59,9 @@ class GitHubService:
 
     async def get_file_content(self, owner: str, name: str, path: str):
         data = await self.get_cached_query(
-            QueryNames.FILE_CONTENT, {"owner": owner, "name": name, "path": path}, ttl=600
+            QueryNames.FILE_CONTENT,
+            {"owner": owner, "name": name, "expression": path},
+            ttl=600,
         )
         return data["repository"]["object"]
 
@@ -70,21 +72,21 @@ class GitHubService:
         )
         return data["repository"]
 
-    async def get_cached_query(self, query_name:str, variables:dict, ttl:int=300):
+    async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
         vars_str = json.dumps(variables or {}, sort_keys=True)
-        cache_key=f"{query_name}:{vars_str}"
+        cache_key = f"{query_name}:{vars_str}"
         try:
-            cached_data=await self.redis.get(cache_key)
+            cached_data = await self.redis.get(cache_key)
             if cached_data:
                 return json.loads(cached_data)
         except Exception:
             pass
-        
-        data=await self.send_query(query_name, variables)
+
+        data = await self.send_query(query_name, variables)
 
         try:
             await self.redis.set(cache_key, json.dumps(data), ex=ttl)
         except Exception:
             pass
-        
+
         return data
