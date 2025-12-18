@@ -43,6 +43,11 @@ query GetUserContributions($owner: String!, $name: String!, $authorId: ID) {
                 author {
                     login
                 }
+                files(first: 20) {
+                    nodes {
+                        path
+                    }
+                }
             }
         }
         

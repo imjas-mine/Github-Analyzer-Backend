@@ -100,23 +100,35 @@ class GitHubService:
         )
         commits = history.get("nodes", []) if history else []
 
-        # Helper to filter by author login
-        # We use the login from the profile to ensure case-insensitive matching if needed,
-        # though usually they match.
         target_login = user_profile.get("login")
 
         # Extract and filter PRs
         all_prs = repo_data.get("pullRequests", {}).get("nodes", [])
-        user_prs = [
-            pr
-            for pr in all_prs
-            if pr.get("author") and pr["author"].get("login") == target_login
-        ]
+        user_prs = []
+        for pr in all_prs:
+            if pr.get("author") and pr["author"].get("login") == target_login:
+                # helper to get file paths
+                file_nodes = pr.get("files", {}).get("nodes", [])
+                file_paths = [f["path"] for f in file_nodes]
+
+                user_prs.append(
+                    {
+                        "title": pr.get("title"),
+                        "state": pr.get("state"),
+                        "mergedAt": pr.get("mergedAt"),
+                        "createdAt": pr.get("createdAt"),
+                        "files": file_paths,
+                    }
+                )
 
         # Extract and filter Issues
         all_issues = repo_data.get("issues", {}).get("nodes", [])
         user_issues = [
-            issue
+            {
+                "title": issue.get("title"),
+                "state": issue.get("state"),
+                "createdAt": issue.get("createdAt"),
+            }
             for issue in all_issues
             if issue.get("author") and issue["author"].get("login") == target_login
         ]
@@ -125,7 +137,7 @@ class GitHubService:
             "commits": commits,
             "pull_requests": user_prs,
             "issues": user_issues,
-            "total_count": len(commits) 
+            "total_count": len(commits),
         }
 
     async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
