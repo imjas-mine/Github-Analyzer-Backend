@@ -30,12 +30,14 @@ class GitHubService:
             return result["data"]
 
     async def get_user_profile(self, username: str):
-        data = await self.send_query(QueryNames.USER_PROFILE, {"username": username})
+        data = await self.get_cached_query(
+            QueryNames.USER_PROFILE, {"username": username}, ttl=3600
+        )
         return data["user"]
 
     async def get_user_repositories(self, username: str):
-        data = await self.send_query(
-            QueryNames.USER_REPOSITORIES, {"username": username}
+        data = await self.get_cached_query(
+            QueryNames.USER_REPOSITORIES, {"username": username}, ttl=600
         )
         return data["user"]["repositories"]
 
@@ -54,9 +56,10 @@ class GitHubService:
         return data["repository"]["object"]
 
     async def get_contribution_stats(self, owner: str, name: str, username: str):
-        data = await self.send_query(
+        data = await self.get_cached_query(
             QueryNames.CONTRIBUTION_STATS,
             {"owner": owner, "name": name, "username": username},
+            ttl=600,
         )
         print("Contribution stats:", data)
         return data["repository"]
@@ -81,9 +84,11 @@ class GitHubService:
 
         # 2. Fetch contributions using the ID
         print(f"Fetching contributions for {owner}/{name} using author ID {author_id}")
-        data = await self.send_query(
+
+        data = await self.get_cached_query(
             QueryNames.USER_CONTRIBUTIONS,
             {"owner": owner, "name": name, "authorId": author_id},
+            ttl=600,
         )
 
         # 3. Extract and return
@@ -100,20 +105,24 @@ class GitHubService:
     async def get_cached_query(self, query_name: str, variables: dict, ttl: int = 300):
         vars_str = json.dumps(variables or {}, sort_keys=True)
         cache_key = f"{query_name}:{vars_str}"
+        print(f"Checking cache for key: {cache_key}")
         try:
             cached_data = await self.redis.get(cache_key)
             if cached_data:
                 print("Using cached response before sending query")
                 return json.loads(cached_data)
-        except Exception:
-            pass
+            else:
+                print("Cache miss")
+                pass
+        except Exception as e:
+            print(f"DEBUG: Redis get error: {e}")
 
         data = await self.send_query(query_name, variables)
 
         try:
             await self.redis.set(cache_key, json.dumps(data), ex=ttl)
             print("Storing github api response in cache")
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"DEBUG: Redis set error: {e}")
 
         return data
