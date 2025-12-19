@@ -57,11 +57,20 @@ async def get_contribution_stats(username: str, owner: str, name: str):
 @router.get("/users/{username}/repositories/{owner}/{name}/contributions")
 async def get_user_contributions(owner: str, name: str, username: str):
     github_service = GitHubService()
-    user_contributions = await github_service.get_user_contributions(owner, name, username)
+    user_contributions = await github_service.get_user_contributions(
+        owner, name, username
+    )
     return user_contributions
+
 
 @router.get("/analyze/{owner}/{repo}")
 async def analyze_repository(owner: str, repo: str, username: str = "default"):
     analyzer = RepoAnalyzerService()
     analysis = await analyzer.analyze(owner, repo, username)
     return analysis
+
+
+@router.get("/analyze/{owner}/{repo}/contributions/{username}")
+async def analyze_user_contributions(owner: str, repo: str, username: str):
+    analyzer = RepoAnalyzerService()
+    return await analyzer.analyze_contributions(owner, repo, username)

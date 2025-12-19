@@ -96,3 +96,64 @@ README:
         print("=" * 60 + "\n")
 
         return await self.send_prompt(system_prompt, user_prompt)
+
+    async def analyze_user_contributions(
+        self, username: str, repo_name: str, contributions: dict
+    ) -> dict:
+        """Analyze user's contributions to a repository and generate a summary."""
+
+        system_prompt = """You are analyzing a developer's contributions to a GitHub repository.
+Generate a JSON summary that helps hiring managers understand what this person did in this project.
+
+Return JSON with:
+{
+    "role_summary": "1-2 sentences describing their likely role (e.g., 'Backend developer focused on API development')",
+    "key_contributions": ["List of 3-5 main things they built or improved"],
+    "skills_demonstrated": ["List of technical skills shown through their work"],
+    "impact_level": "low/medium/high - based on scope and complexity of contributions"
+}
+
+Guidelines:
+- Infer their role from file types they touched (e.g., .py = backend, .tsx = frontend, .sql = database)
+- Look at PR titles and commit messages to understand what features/fixes they worked on
+- Be specific about what they did, not generic
+- If they have few contributions, be honest about limited data"""
+
+        commits = contributions.get("commits", [])
+        commit_messages = [
+            c.get("message", "").split("\n")[0] for c in commits
+        ]  # First line only
+
+        prs = contributions.get("pull_requests", [])
+        pr_summaries = []
+        for pr in prs:
+            files_str = ", ".join(pr.get("files", [])[:10])  # Limit files shown
+            pr_summaries.append(
+                f"- {pr.get('title')} ({pr.get('state')}) | Files: {files_str}"
+            )
+
+        # Format issues
+        issues = contributions.get("issues", [])
+        issue_summaries = [f"- {i.get('title')} ({i.get('state')})" for i in issues]
+
+        user_prompt = f"""Repository: {repo_name}
+Developer: {username}
+
+PULL REQUESTS ({len(prs)} total):
+{chr(10).join(pr_summaries) if pr_summaries else "None"}
+
+COMMITS ({len(commits)} shown of {contributions.get("total_count", 0)} total):
+{chr(10).join(commit_messages) if commit_messages else "None"}
+
+ISSUES CREATED ({len(issues)} total):
+{chr(10).join(issue_summaries) if issue_summaries else "None"}
+"""
+
+        # Log the context being sent to AI
+        print("\n" + "=" * 60)
+        print("CONTRIBUTION CONTEXT SENT TO AI:")
+        print("=" * 60)
+        print(user_prompt)
+        print("=" * 60 + "\n")
+
+        return await self.send_prompt(system_prompt, user_prompt)

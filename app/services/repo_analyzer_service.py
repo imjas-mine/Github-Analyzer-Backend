@@ -87,3 +87,24 @@ class RepoAnalyzerService:
         }
 
         return await self.openai_service.analyze_repository(context)
+
+    async def analyze_contributions(self, owner: str, repo: str, username: str) -> dict:
+
+        contributions = await self.github_service.get_user_contributions(
+            owner, repo, username
+        )
+
+        analysis = await self.openai_service.analyze_user_contributions(
+            username=username, repo_name=f"{owner}/{repo}", contributions=contributions
+        )
+
+        return {
+            "username": username,
+            "repository": f"{owner}/{repo}",
+            "contribution_stats": {
+                "commits": len(contributions.get("commits", [])),
+                "pull_requests": len(contributions.get("pull_requests", [])),
+                "issues": len(contributions.get("issues", [])),
+            },
+            "ai_analysis": analysis,
+        }
