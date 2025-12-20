@@ -28,6 +28,9 @@ query GetUserRepositories($username: String!, $first: Int = 100, $after: String)
                 owner {
                     login
                 }
+                mentionableUsers {
+                    totalCount
+                }
                 defaultBranchRef {
                     name
                     target {
